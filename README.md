@@ -39,7 +39,7 @@ No authentication required. First run will auto-install dependencies.
 
 ## Output
 
-Structured briefing with: headline verdict, snapshot, three-method summary, DCF build, peer comparison, SOTP (if applicable), sensitivity matrix, scenarios, key risks, and caveats. Download the Html valuation file of your company and view it
+Structured briefing with: headline verdict, snapshot, three-method summary, DCF build, peer comparison, SOTP (if applicable), sensitivity matrix, scenarios, key risks, and caveats. Download the Html valuation file of the output and view it
 
 ## Disclaimer
 
