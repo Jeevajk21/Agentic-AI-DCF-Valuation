@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AstraZeneca (AZN) — DCF Valuation Report | June 2026</title>
+  <meta name="description" content="Full DCF and relative valuation of AstraZeneca PLC (AZN). Blended fair value $124.52 vs current $180.27. Includes WACC, FCFF projections, peer comp, sensitivity matrix and scenario analysis." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg:         #0a0d14;
+      --bg2:        #111520;
+      --bg3:        #181d2c;
+      --border:     rgba(255,255,255,0.07);
+      --border-hi:  rgba(99,179,237,0.25);
+      --text:       #e2e8f0;
+      --muted:      #718096;
+      --accent:     #63b3ed;
+      --accent2:    #9f7aea;
+      --green:      #48bb78;
+      --red:        #fc8181;
+      --amber:      #f6ad55;
+      --card-glow:  0 0 0 1px rgba(99,179,237,0.08), 0 4px 24px rgba(0,0,0,0.5);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── BACKGROUND ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 0%, rgba(99,179,237,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 100%, rgba(159,122,234,0.06) 0%, transparent 60%);
+      pointer-events: none; z-index: 0;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+    /* ── HEADER ── */
+    header {
+      padding: 48px 0 32px;
+      border-bottom: 1px solid var(--border);
+    }
+    .header-inner { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+    .company-badge {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: rgba(99,179,237,0.1); border: 1px solid rgba(99,179,237,0.2);
+      padding: 6px 14px; border-radius: 999px; font-size: 12px;
+      font-weight: 600; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .company-badge span { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+    h1 { font-size: clamp(28px,4vw,44px); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; }
+    h1 em { font-style: normal; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .subtitle { color: var(--muted); font-size: 14px; margin-top: 8px; }
+    .price-badge {
+      text-align: right;
+    }
+    .price-badge .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+    .price-badge .price { font-size: 40px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .price-badge .change {
+      font-size: 13px; font-weight: 600; color: var(--red);
+      background: rgba(252,129,129,0.1); padding: 2px 10px; border-radius: 999px;
+      display: inline-block; margin-top: 6px;
+    }
+
+    /* ── VERDICT BANNER ── */
+    .verdict {
+      margin: 32px 0;
+      background: linear-gradient(135deg, rgba(99,179,237,0.08), rgba(159,122,234,0.06));
+      border: 1px solid var(--border-hi);
+      border-radius: 16px; padding: 28px 32px;
+    }
+    .verdict-label { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
+    .verdict-text { font-size: 18px; font-weight: 600; line-height: 1.6; }
+    .verdict-text strong { color: var(--accent); }
+
+    /* ── STAT CARDS ── */
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; margin: 32px 0; }
+    .stat-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 14px; padding: 20px 18px;
+      transition: border-color .2s, transform .2s;
+    }
+    .stat-card:hover { border-color: var(--border-hi); transform: translateY(-2px); }
+    .stat-card .slabel { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .stat-card .sval { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .stat-card .sdesc { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .stat-card.highlight { border-color: rgba(99,179,237,0.3); background: rgba(99,179,237,0.05); }
+    .stat-card.highlight .sval { color: var(--accent); }
+    .stat-card.red-card { border-color: rgba(252,129,129,0.3); background: rgba(252,129,129,0.05); }
+    .stat-card.red-card .sval { color: var(--red); }
+    .stat-card.green-card { border-color: rgba(72,187,120,0.3); background: rgba(72,187,120,0.05); }
+    .stat-card.green-card .sval { color: var(--green); }
+
+    /* ── SECTIONS ── */
+    section { margin: 48px 0; }
+    .section-header {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 24px; padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-number {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    h2 { font-size: 20px; font-weight: 700; }
+    .section-sub { color: var(--muted); font-size: 13px; }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 16px; padding: 24px 28px;
+      box-shadow: var(--card-glow);
+    }
+    .card + .card { margin-top: 16px; }
+
+    /* ── TABLE ── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    thead th {
+      text-align: left; padding: 10px 14px;
+      font-size: 11px; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.07em;
+      border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    thead th.num { text-align: right; }
+    tbody tr { transition: background .15s; }
+    tbody tr:hover { background: rgba(255,255,255,0.025); }
+    tbody td { padding: 11px 14px; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--text); }
+    tbody td.num { text-align: right; font-variant-numeric: tabular-nums; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+    tbody tr.median-row td { background: rgba(99,179,237,0.06); font-weight: 600; color: var(--accent); border-top: 1px solid rgba(99,179,237,0.2); }
+    tbody tr.azn-row td { background: rgba(159,122,234,0.06); font-weight: 600; color: var(--accent2); border-top: 1px solid rgba(159,122,234,0.2); }
+    tbody tr.total-row td { background: rgba(72,187,120,0.05); font-weight: 700; color: var(--green); border-top: 1px solid rgba(72,187,120,0.2); }
+
+    /* ── SENSITIVITY GRID ── */
+    .sens-grid { display: grid; grid-template-columns: 90px repeat(5, 1fr); gap: 4px; font-size: 13px; }
+    .sens-cell {
+      padding: 10px 6px; border-radius: 8px; text-align: center;
+      font-family: 'JetBrains Mono', monospace; font-weight: 500;
+      transition: transform .15s;
+    }
+    .sens-cell:hover { transform: scale(1.05); z-index: 2; }
+    .sens-header { background: var(--bg3); color: var(--muted); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+    .sens-base { background: rgba(99,179,237,0.25); border: 2px solid var(--accent); color: var(--accent); font-weight: 700; }
+    /* colour ramp */
+    .c1  { background: rgba(252,129,129,0.25); color: #fc8181; }
+    .c2  { background: rgba(252,129,129,0.15); color: #fc8181; }
+    .c3  { background: rgba(246,173,85,0.15);  color: #f6ad55; }
+    .c4  { background: rgba(246,173,85,0.25);  color: #f6ad55; }
+    .c5  { background: rgba(72,187,120,0.15);  color: #48bb78; }
+    .c6  { background: rgba(72,187,120,0.25);  color: #48bb78; }
+    .c7  { background: rgba(72,187,120,0.35);  color: #38a169; }
+
+    /* ── SCENARIO CARDS ── */
+    .scenario-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .scenario-card { border-radius: 16px; padding: 24px; border: 1px solid var(--border); transition: transform .2s; }
+    .scenario-card:hover { transform: translateY(-3px); }
+    .scenario-card.bull { background: rgba(72,187,120,0.06); border-color: rgba(72,187,120,0.25); }
+    .scenario-card.base { background: rgba(99,179,237,0.05); border-color: rgba(99,179,237,0.2); }
+    .scenario-card.bear { background: rgba(252,129,129,0.06); border-color: rgba(252,129,129,0.25); }
+    .scenario-name { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; }
+    .bull .scenario-name { color: var(--green); }
+    .base .scenario-name { color: var(--accent); }
+    .bear .scenario-name { color: var(--red); }
+    .scenario-price { font-size: 36px; font-weight: 800; font-variant-numeric: tabular-nums; margin: 4px 0; }
+    .bull .scenario-price { color: var(--green); }
+    .base .scenario-price { color: var(--accent); }
+    .bear .scenario-price { color: var(--red); }
+    .scenario-vs { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+    .scenario-params { display: flex; flex-direction: column; gap: 6px; }
+    .param-row { display: flex; justify-content: space-between; font-size: 12px; }
+    .param-label { color: var(--muted); }
+    .param-val { font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+
+    /* ── RISKS ── */
+    .risk-list { display: flex; flex-direction: column; gap: 14px; }
+    .risk-item {
+      display: flex; gap: 16px; align-items: flex-start;
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 14px; padding: 18px 20px;
+      transition: border-color .2s;
+    }
+    .risk-item:hover { border-color: var(--border-hi); }
+    .risk-num { flex-shrink: 0; width: 28px; height: 28px; background: rgba(246,173,85,0.12); border: 1px solid rgba(246,173,85,0.3); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--amber); }
+    .risk-content .risk-title { font-weight: 600; margin-bottom: 4px; font-size: 14px; }
+    .risk-content .risk-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+    /* ── METHOD TRIANGULATION ── */
+    .tri-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    @media(max-width:640px){ .tri-grid { grid-template-columns: 1fr; } }
+    .tri-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 14px; padding: 20px; text-align: center; }
+    .tri-method { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .tri-price { font-size: 32px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .tri-weight { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .tri-blended { background: linear-gradient(135deg, rgba(99,179,237,0.1), rgba(159,122,234,0.08)); border-color: var(--border-hi); }
+    .tri-blended .tri-price { background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .upside-badge { display: inline-block; margin-top: 10px; padding: 4px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; background: rgba(252,129,129,0.15); color: var(--red); border: 1px solid rgba(252,129,129,0.25); }
+
+    /* ── WACC BREAKDOWN ── */
+    .wacc-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .wacc-row:last-child { border-bottom: none; }
+    .wacc-key { font-size: 13px; color: var(--muted); }
+    .wacc-val { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; }
+    .wacc-val.big { font-size: 22px; color: var(--accent); }
+
+    /* ── CHART CONTAINERS ── */
+    .chart-wrap { position: relative; height: 280px; }
+
+    /* ── BRIDGE ── */
+    .bridge-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); }
+    .bridge-row:last-child { border-bottom: none; font-size: 16px; font-weight: 700; }
+    .bridge-key { font-size: 13px; color: var(--muted); }
+    .bridge-val { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; }
+    .bridge-val.plus { color: var(--green); }
+    .bridge-val.minus { color: var(--red); }
+    .bridge-val.total { color: var(--accent); font-size: 20px; }
+
+    /* ── BETA CALLOUT ── */
+    .beta-callout {
+      background: rgba(246,173,85,0.06); border: 1px solid rgba(246,173,85,0.25);
+      border-radius: 14px; padding: 20px 24px; margin-top: 20px;
+      display: flex; gap: 14px; align-items: flex-start;
+    }
+    .beta-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+    .beta-body { font-size: 13px; line-height: 1.7; color: var(--text); }
+    .beta-body strong { color: var(--amber); }
+
+    /* ── FOOTER ── */
+    footer { border-top: 1px solid var(--border); padding: 32px 0 48px; margin-top: 64px; }
+    .footer-text { font-size: 12px; color: var(--muted); line-height: 1.8; }
+    .footer-text strong { color: var(--text); }
+
+    /* ── MISC ── */
+    .tag { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+    .tag-green { background: rgba(72,187,120,0.1); color: var(--green); border: 1px solid rgba(72,187,120,0.2); }
+    .tag-red { background: rgba(252,129,129,0.1); color: var(--red); border: 1px solid rgba(252,129,129,0.2); }
+    .tag-amber { background: rgba(246,173,85,0.1); color: var(--amber); border: 1px solid rgba(246,173,85,0.2); }
+    .tag-blue { background: rgba(99,179,237,0.1); color: var(--accent); border: 1px solid rgba(99,179,237,0.2); }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media(max-width:720px){ .two-col { grid-template-columns: 1fr; } }
+
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .note { font-size: 12px; color: var(--muted); margin-top: 12px; padding: 10px 14px; background: var(--bg3); border-radius: 8px; border-left: 3px solid var(--accent); }
+
+    /* Animated number reveal */
+    @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+    .fade-up { animation: fadeUp .5s ease forwards; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-inner">
+      <div>
+        <div class="company-badge"><span></span>Live Analysis · June 2026</div>
+        <h1><em>AstraZeneca</em> DCF Valuation</h1>
+        <p class="subtitle">AZN · NYSE ADR · Healthcare / Drug Manufacturers &nbsp;|&nbsp; Full DCF + Relative Valuation · Data via yfinance</p>
+      </div>
+      <div class="price-badge">
+        <div class="label">Current Price (AZN)</div>
+        <div class="price">$180.27</div>
+        <div class="change">↓ −31% to fair value</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- VERDICT -->
+  <div class="verdict fade-up">
+    <div class="verdict-label">🔬 Headline Verdict</div>
+    <div class="verdict-text">
+      AZN blended fair value ≈ <strong>$124.52</strong> vs current <strong>$180.27</strong> → <strong style="color:var(--red)">~−31% implied downside</strong> at sector-default WACC (8.86%).
+      The DCF is most bearish at <strong>$102.94</strong>; relative peer comp most bullish at <strong>$146.11</strong>.
+      The dominant swing factor is beta — using AZN's market-observed beta (0.21) flips the DCF to <strong style="color:var(--green)">~$250 (+38%)</strong>.
+    </div>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="stat-grid fade-up">
+    <div class="stat-card highlight">
+      <div class="slabel">Blended Fair Value</div>
+      <div class="sval">$124.52</div>
+      <div class="sdesc">DCF 50% + Relative 50%</div>
+    </div>
+    <div class="stat-card red-card">
+      <div class="slabel">DCF Implied Price</div>
+      <div class="sval">$102.94</div>
+      <div class="sdesc">Sector-default beta 0.90</div>
+    </div>
+    <div class="stat-card">
+      <div class="slabel">Relative Implied</div>
+      <div class="sval">$146.11</div>
+      <div class="sdesc">Pharma peer median</div>
+    </div>
+    <div class="stat-card">
+      <div class="slabel">WACC</div>
+      <div class="sval">8.86%</div>
+      <div class="sdesc">β=0.90 · Ke=9.45% · Kd=4.94%</div>
+    </div>
+    <div class="stat-card">
+      <div class="slabel">Market Cap</div>
+      <div class="sval">$279.6B</div>
+      <div class="sdesc">1.551B shares outstanding</div>
+    </div>
+    <div class="stat-card">
+      <div class="slabel">Net Debt</div>
+      <div class="sval">$26.35B</div>
+      <div class="sdesc">Debt $34.0B · Cash $7.7B</div>
+    </div>
+    <div class="stat-card">
+      <div class="slabel">TTM Revenue</div>
+      <div class="sval">$60.4B</div>
+      <div class="sdesc">+18% YoY FY2024</div>
+    </div>
+    <div class="stat-card">
+      <div class="slabel">TTM EBITDA</div>
+      <div class="sval">$20.2B</div>
+      <div class="sdesc">EBITDA margin ~33%</div>
+    </div>
+  </div>
+
+  <!-- SECTION 1: WACC -->
+  <section>
+    <div class="section-header">
+      <div class="section-number">1</div>
+      <div><h2>WACC Computation</h2><span class="section-sub">Cost of capital inputs · Sector-default beta used</span></div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="wacc-row"><span class="wacc-key">Risk-free rate (rf)</span><span class="wacc-val">4.50%</span></div>
+        <div class="wacc-row"><span class="wacc-key">Equity risk premium (ERP)</span><span class="wacc-val">5.50%</span></div>
+        <div class="wacc-row"><span class="wacc-key">Beta — market observed</span><span class="wacc-val">0.214 <span class="tag tag-amber">Low</span></span></div>
+        <div class="wacc-row"><span class="wacc-key">Beta — sector default (used)</span><span class="wacc-val">0.90 <span class="tag tag-blue">Healthcare</span></span></div>
+        <div class="wacc-row"><span class="wacc-key">Cost of Equity (Ke)</span><span class="wacc-val">9.45%</span></div>
+        <div class="wacc-row"><span class="wacc-key">Cost of Debt (Kd effective)</span><span class="wacc-val">4.94%</span></div>
+        <div class="wacc-row"><span class="wacc-key">E/V · D/V</span><span class="wacc-val">89.1% · 10.9%</span></div>
+        <div class="wacc-row"><span class="wacc-key">Effective tax rate</span><span class="wacc-val">19.00%</span></div>
+        <div class="wacc-row"><span class="wacc-key" style="color:var(--text);font-weight:600;">WACC</span><span class="wacc-val big">8.86%</span></div>
+      </div>
+      <div>
+        <div class="card" style="height:100%;">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.08em;">WACC Build-up</div>
+          <div class="chart-wrap"><canvas id="waccChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+    <div class="beta-callout">
+      <div class="beta-icon">⚡</div>
+      <div class="beta-body">
+        <strong>Beta is the dominant swing factor.</strong> AZN's market-observed beta (0.21) reflects its exceptionally low volatility relative to the market.
+        Using it produces WACC ~6.0% and DCF price ~$250 (+38% upside). The sector-default (0.90) used here is the conservative floor.
+        The current $180 price implies an <em>effective</em> market beta of roughly <strong>0.45–0.55</strong>.
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 2: MARGIN ASSUMPTIONS -->
+  <section>
+    <div class="section-header">
+      <div class="section-number">2</div>
+      <div><h2>Margin Assumptions</h2><span class="section-sub">3-year median FY2022–FY2024 from yfinance</span></div>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Assumption</th>
+              <th class="num">Value</th>
+              <th>Rationale</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>EBIT Margin</td><td class="num mono">18.53%</td><td style="color:var(--muted);font-size:13px;">3-yr median of operating income / revenue</td></tr>
+            <tr><td>D&amp;A % Revenue</td><td class="num mono">10.77%</td><td style="color:var(--muted);font-size:13px;">High D&amp;A from Alexion acquisition amortization</td></tr>
+            <tr><td>CapEx % Revenue</td><td class="num mono">8.25%</td><td style="color:var(--muted);font-size:13px;">Rising manufacturing + R&amp;D infrastructure</td></tr>
+            <tr><td>ΔNWC % Revenue</td><td class="num mono">1.65%</td><td style="color:var(--muted);font-size:13px;">50% of abs 3yr median (directional smoothing)</td></tr>
+            <tr><td>Effective Tax Rate</td><td class="num mono">19.00%</td><td style="color:var(--muted);font-size:13px;">FY2024 reported; floored 15%, capped 30%</td></tr>
+            <tr class="total-row"><td>Net FCFF Conversion (NOPAT basis)</td><td class="num mono">~20.2%</td><td style="font-size:13px;">NOPAT + D&amp;A − CapEx − ΔNWC as % of rev</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3: FCFF PROJECTION -->
+  <section>
+    <div class="section-header">
+      <div class="section-number">3</div>
+      <div><h2>FCFF Projection</h2><span class="section-sub">FY2025–FY2029 · Consensus growth Y1+Y2, gradual fade to 3.0% in Y5 · Terminal g = 2.5%</span></div>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Year</th>
+              <th class="num">Growth</th>
+              <th class="num">Revenue ($B)</th>
+              <th class="num">EBIT ($B)</th>
+              <th class="num">NOPAT ($B)</th>
+              <th class="num">D&amp;A ($B)</th>
+              <th class="num">CapEx ($B)</th>
+              <th class="num">FCFF ($B)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>FY2025</strong></td><td class="num">7.8%</td><td class="num">58.29</td><td class="num">10.80</td><td class="num">8.75</td><td class="num">6.28</td><td class="num">4.81</td><td class="num" style="color:var(--accent);font-weight:600;">9.74</td></tr>
+            <tr><td><strong>FY2026</strong></td><td class="num">6.1%</td><td class="num">61.85</td><td class="num">11.46</td><td class="num">9.28</td><td class="num">6.66</td><td class="num">5.10</td><td class="num" style="color:var(--accent);font-weight:600;">10.33</td></tr>
+            <tr><td><strong>FY2027</strong></td><td class="num">5.0%</td><td class="num">64.94</td><td class="num">12.03</td><td class="num">9.75</td><td class="num">6.99</td><td class="num">5.36</td><td class="num" style="color:var(--accent);font-weight:600;">10.85</td></tr>
+            <tr><td><strong>FY2028</strong></td><td class="num">3.8%</td><td class="num">67.41</td><td class="num">12.49</td><td class="num">10.12</td><td class="num">7.26</td><td class="num">5.56</td><td class="num" style="color:var(--accent);font-weight:600;">11.26</td></tr>
+            <tr><td><strong>FY2029</strong></td><td class="num">3.0%</td><td class="num">69.43</td><td class="num">12.86</td><td class="num">10.42</td><td class="num">7.48</td><td class="num">5.73</td><td class="num" style="color:var(--accent);font-weight:600;">11.60</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.08em;">Revenue & FCFF Trajectory ($B)</div>
+      <div class="chart-wrap"><canvas id="fcffChart"></canvas></div>
+    </div>
+  </section>
+
+  <!-- SECTION 4: EV BRIDGE -->
+  <section>
+    <div class="section-header">
+      <div class="section-number">4</div>
+      <div><h2>EV-to-Equity Bridge</h2><span class="section-sub">Terminal value blended: 50% Gordon Growth + 50% 12.5× EV/EBITDA exit</span></div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="bridge-row"><span class="bridge-key">Terminal EBITDA (FY2029)</span><span class="bridge-val">$20.34B</span></div>
+        <div class="bridge-row"><span class="bridge-key">TV — Gordon Growth (g=2.5%)</span><span class="bridge-val">$186.95B</span></div>
+        <div class="bridge-row"><span class="bridge-key">TV — Exit 12.5× EV/EBITDA</span><span class="bridge-val">$254.27B</span></div>
+        <div class="bridge-row"><span class="bridge-key">TV — Blended (50/50)</span><span class="bridge-val">$220.61B</span></div>
+        <hr style="border-color:var(--border);margin:8px 0;" />
+        <div class="bridge-row"><span class="bridge-key">PV of Explicit FCFFs (5yr)</span><span class="bridge-val plus">$41.68B</span></div>
+        <div class="bridge-row"><span class="bridge-key">PV of Terminal Value (77.6% of EV)</span><span class="bridge-val plus">$144.31B</span></div>
+        <div class="bridge-row"><span class="bridge-key">Enterprise Value (DCF)</span><span class="bridge-val">$185.99B</span></div>
+        <div class="bridge-row"><span class="bridge-key">+ Cash</span><span class="bridge-val plus">+$7.67B</span></div>
+        <div class="bridge-row"><span class="bridge-key">− Total Debt</span><span class="bridge-val minus">−$34.03B</span></div>
+        <div class="bridge-row" style="margin-top:8px;padding-top:12px;border-top:1px solid var(--border);"><span class="bridge-key" style="color:var(--text);font-size:15px;font-weight:700;">Implied Price (DCF)</span><span class="bridge-val total">$102.94</span></div>
+      </div>
+      <div class="card">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.08em;">EV Composition</div>
+        <div class="chart-wrap"><canvas id="evChart"></canvas></div>
+        <div class="note">PV of TV is 77.6% of EV — within the acceptable 45–85% range. Both TV methods shown (Gordon vs Exit) differ by 36%, hence blended.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 5: RELATIVE VALUATION -->
+  <section>
+    <div class="section-header">
+      <div class="section-number">5</div>
+      <div><h2>Relative Valuation</h2><span class="section-sub">Pharma peer comp — Pfizer · Novartis · AbbVie · Merck · Roche</span></div>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th class="num">Fwd P/E</th>
+              <th class="num">EV/Revenue</th>
+              <th class="num">EV/EBITDA</th>
+              <th class="num">Implied P/E ($)</th>
+              <th class="num">Implied EV/Rev ($)</th>
+              <th class="num">Implied EV/EBITDA ($)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Pfizer (PFE)</td><td class="num">9.0×</td><td class="num">3.2×</td><td class="num">11.3×</td><td class="num">–</td><td class="num">–</td><td class="num">–</td></tr>
+            <tr><td>Novartis (NVS)</td><td class="num">16.5×</td><td class="num">5.8×</td><td class="num">13.9×</td><td class="num">–</td><td class="num">–</td><td class="num">–</td></tr>
+            <tr><td>AbbVie (ABBV)</td><td class="num">15.2×</td><td class="num">7.0×</td><td class="num">15.9×</td><td class="num">–</td><td class="num">–</td><td class="num">–</td></tr>
+            <tr><td>Merck (MRK)</td><td class="num">12.0×</td><td class="num">4.9×</td><td class="num">12.5×</td><td class="num">–</td><td class="num">–</td><td class="num">–</td></tr>
+            <tr><td>Roche (ROG)</td><td class="num">14.0×</td><td class="num">4.3×</td><td class="num">10.9×</td><td class="num">–</td><td class="num">–</td><td class="num">–</td></tr>
+            <tr class="median-row">
+              <td>Peer Median</td><td class="num">14.0×</td><td class="num">4.9×</td><td class="num">12.5×</td>
+              <td class="num">$112.60</td><td class="num">$173.97</td><td class="num">$146.11</td>
+            </tr>
+            <tr class="azn-row">
+              <td>AZN (current market)</td><td class="num">22.5×</td><td class="num">5.0×</td><td class="num">15.0×</td>
+              <td class="num" colspan="3" style="text-align:center;color:var(--amber);">+20% premium to peers · justified by superior growth</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note" style="margin-top:16px;">
+        Implied relative price = <strong>median of</strong> P/E-implied ($112.60), EV/Rev-implied ($173.97), EV/EBITDA-implied ($146.11) → <strong>$146.11</strong>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.08em;">Implied Prices by Method vs Current ($180.27)</div>
+      <div class="chart-wrap"><canvas id="relChart"></canvas></div>
+    </div>
+  </section>
+
+  <!-- SECTION 6: TRIANGULATION -->
+  <section>
+    <div class="section-header">
+      <div class="section-number">6</div>
+      <div><h2>Triangulated Fair Value</h2><span class="section-sub">50% DCF · 50% Relative · Blended</span></div>
+    </div>
+    <div class="tri-grid">
+      <div class="tri-card">
+        <div class="tri-method">DCF (FCFF)</div>
+        <div class="tri-price" style="color:var(--red);">$102.94</div>
+        <div class="tri-weight">Weight: 50% · Sector-default β=0.90</div>
+      </div>
+      <div class="tri-card">
+        <div class="tri-method">Relative (Peer Median)</div>
+        <div class="tri-price" style="color:var(--accent);">$146.11</div>
+        <div class="tri-weight">Weight: 50% · EV/EBITDA anchor</div>
+      </div>
+      <div class="tri-card tri-blended">
+        <div class="tri-method">BLENDED FAIR VALUE</div>
+        <div class="tri-price">$124.52</div>
+        <div class="tri-weight">vs $180.27 current</div>
+        <div class="upside-badge">−30.9% downside</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 7: SENSITIVITY -->
+  <section>
+    <div class="section-header">
+      <div class="section-number">7</div>
+      <div><h2>DCF Sensitivity Matrix</h2><span class="section-sub">Implied share price · WACC (rows) × Terminal Growth rate (cols)</span></div>
+    </div>
+    <div class="card">
+      <div class="sens-grid">
+        <!-- Header row -->
+        <div class="sens-header">WACC \ g</div>
+        <div class="sens-header">1.5%</div>
+        <div class="sens-header">2.0%</div>
+        <div class="sens-header">2.5%</div>
+        <div class="sens-header">3.0%</div>
+        <div class="sens-header">3.5%</div>
+        <!-- 7.86% -->
+        <div class="sens-header">7.86%</div>
+        <div class="sens-cell c4">$92</div>
+        <div class="sens-cell c5">$100</div>
+        <div class="sens-cell c5">$109</div>
+        <div class="sens-cell c6">$119</div>
+        <div class="sens-cell c6">$132</div>
+        <!-- 8.36% -->
+        <div class="sens-header">8.36%</div>
+        <div class="sens-cell c3">$84</div>
+        <div class="sens-cell c4">$91</div>
+        <div class="sens-cell c4">$98</div>
+        <div class="sens-cell c5">$106</div>
+        <div class="sens-cell c5">$117</div>
+        <!-- 8.86% BASE -->
+        <div class="sens-header" style="color:var(--accent);font-weight:700;">8.86%★</div>
+        <div class="sens-cell c2">$77</div>
+        <div class="sens-cell c3">$83</div>
+        <div class="sens-cell sens-base">$89★</div>
+        <div class="sens-cell c4">$96</div>
+        <div class="sens-cell c4">$104</div>
+        <!-- 9.36% -->
+        <div class="sens-header">9.36%</div>
+        <div class="sens-cell c2">$71</div>
+        <div class="sens-cell c2">$76</div>
+        <div class="sens-cell c3">$81</div>
+        <div class="sens-cell c3">$87</div>
+        <div class="sens-cell c4">$94</div>
+        <!-- 9.86% -->
+        <div class="sens-header">9.86%</div>
+        <div class="sens-cell c1">$66</div>
+        <div class="sens-cell c1">$70</div>
+        <div class="sens-cell c2">$74</div>
+        <div class="sens-cell c2">$79</div>
+        <div class="sens-cell c3">$85</div>
+      </div>
+      <div class="note" style="margin-top:16px;">★ = Base case. To justify the $180 market price via DCF requires WACC ≈ 6.0% (market-observed beta 0.21) and terminal g ≥ 3.0%.</div>
+    </div>
+  </section>
+
+  <!-- SECTION 8: SCENARIOS -->
+  <section>
+    <div class="section-header">
+      <div class="section-number">8</div>
+      <div><h2>Bull / Base / Bear Scenarios</h2><span class="section-sub">Revenue ±3% · EBIT margin ±2% · WACC ∓1% · Terminal g 3.0% / 2.5% / 1.5%</span></div>
+    </div>
+    <div class="scenario-grid">
+      <div class="scenario-card bull">
+        <div class="scenario-name">🟢 Bull Case</div>
+        <div class="scenario-price">$153.04</div>
+        <div class="scenario-vs">vs $180.27 current → <strong style="color:var(--red)">−15.1%</strong></div>
+        <div class="scenario-params">
+          <div class="param-row"><span class="param-label">Revenue adj</span><span class="param-val" style="color:var(--green);">+3%</span></div>
+          <div class="param-row"><span class="param-label">EBIT margin adj</span><span class="param-val" style="color:var(--green);">+2%</span></div>
+          <div class="param-row"><span class="param-label">WACC</span><span class="param-val">7.86%</span></div>
+          <div class="param-row"><span class="param-label">Terminal g</span><span class="param-val">3.0%</span></div>
+        </div>
+      </div>
+      <div class="scenario-card base">
+        <div class="scenario-name">🔵 Base Case</div>
+        <div class="scenario-price">$88.74</div>
+        <div class="scenario-vs">vs $180.27 current → <strong style="color:var(--red)">−50.8%</strong></div>
+        <div class="scenario-params">
+          <div class="param-row"><span class="param-label">Revenue adj</span><span class="param-val">±0%</span></div>
+          <div class="param-row"><span class="param-label">EBIT margin adj</span><span class="param-val">±0%</span></div>
+          <div class="param-row"><span class="param-label">WACC</span><span class="param-val">8.86%</span></div>
+          <div class="param-row"><span class="param-label">Terminal g</span><span class="param-val">2.5%</span></div>
+        </div>
+      </div>
+      <div class="scenario-card bear">
+        <div class="scenario-name">🔴 Bear Case</div>
+        <div class="scenario-price">$49.11</div>
+        <div class="scenario-vs">vs $180.27 current → <strong style="color:var(--red)">−72.8%</strong></div>
+        <div class="scenario-params">
+          <div class="param-row"><span class="param-label">Revenue adj</span><span class="param-val" style="color:var(--red);">−3%</span></div>
+          <div class="param-row"><span class="param-label">EBIT margin adj</span><span class="param-val" style="color:var(--red);">−2%</span></div>
+          <div class="param-row"><span class="param-label">WACC</span><span class="param-val">9.86%</span></div>
+          <div class="param-row"><span class="param-label">Terminal g</span><span class="param-val">1.5%</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="note" style="margin-top:16px;">Even the Bull scenario at sector-default WACC implies −15% downside. The current $181 is only DCF-justified at AZN's low market-observed beta.</div>
+  </section>
+
+  <!-- SECTION 9: KEY RISKS -->
+  <section>
+    <div class="section-header">
+      <div class="section-number">9</div>
+      <div><h2>Key Risks</h2><span class="section-sub">Assumptions most likely to move the thesis</span></div>
+    </div>
+    <div class="risk-list">
+      <div class="risk-item">
+        <div class="risk-num">1</div>
+        <div class="risk-content">
+          <div class="risk-title">Pipeline Execution</div>
+          <div class="risk-desc">AZN's premium multiple assumes Dato-DXd, Tagrisso label expansions, and the Daiichi Sankyo ADC partnership deliver. Any Phase 3 failure in a flagship oncology asset would compress the growth multiple sharply and potentially re-rate the stock 15–25%.</div>
+        </div>
+      </div>
+      <div class="risk-item">
+        <div class="risk-num">2</div>
+        <div class="risk-content">
+          <div class="risk-title">Patent Cliffs</div>
+          <div class="risk-desc">Tagrisso (osimertinib, ~$6B revenue) faces generic competition risk post-2028. Farxiga (CVRM, ~$4B+) is also patent-exposed. Combined, ~$10B+ in revenues face medium-term patent risk that the DCF only partially captures in the terminal growth fade.</div>
+        </div>
+      </div>
+      <div class="risk-item">
+        <div class="risk-num">3</div>
+        <div class="risk-content">
+          <div class="risk-title">Beta / WACC Uncertainty</div>
+          <div class="risk-desc">The single biggest model swing: market-observed beta (0.21) → WACC ~6.0% → DCF ~$250. Sector-default (0.90) → WACC ~8.9% → DCF ~$103. The "true" cost of capital for AZN is genuinely ambiguous. The current $180 price implies an effective beta of ~0.45–0.55.</div>
+        </div>
+      </div>
+      <div class="risk-item">
+        <div class="risk-num">4</div>
+        <div class="risk-content">
+          <div class="risk-title">R&D Cost Inflation</div>
+          <div class="risk-desc">AZN spends approximately 25% of revenue on R&D, one of the highest ratios in large-cap pharma. A sustained escalation — particularly from late-stage trial costs for biologics and ADCs — compresses FCFF faster than revenue grows, reducing the blended DCF meaningfully.</div>
+        </div>
+      </div>
+      <div class="risk-item">
+        <div class="risk-num">5</div>
+        <div class="risk-content">
+          <div class="risk-title">FX Headwinds</div>
+          <div class="risk-desc">AZN reports in USD but earns approximately 40% of revenue in non-USD currencies (GBP, EUR, CNY). A 10% USD strengthening reduces reported revenue by ~4% and can materially suppress both reported EPS and the DCF's revenue base.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-text">
+      <strong>Disclaimer:</strong> This report is for educational and research purposes only. It does not constitute financial advice, a solicitation, or an offer to buy or sell any security.
+      All data sourced via <strong>yfinance</strong> (unofficial); cross-check against AstraZeneca's primary filings (20-F/Annual Report) before making any investment decision.
+      Peer multiples sourced from public financial data as of June 2026. Values may differ from real-time market data.
+      <br /><br />
+      Generated: 23 June 2026 · AstraZeneca PLC (AZN) · NYSE ADR · Methodology: DCF (FCFF) + Relative (Peer Comp)
+    </div>
+  </footer>
+
+</div><!-- /container -->
+
+<!-- ── CHARTS ── -->
+<script>
+Chart.defaults.color = '#718096';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.07)';
+Chart.defaults.font.family = "'Inter', sans-serif";
+
+// WACC waterfall
+new Chart(document.getElementById('waccChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Risk-free rate', 'β × ERP', 'Cost of Equity', 'Kd × (1-t) × D/V', 'WACC'],
+    datasets: [{
+      data: [4.50, 4.95, 9.45, 0.58, 8.86],
+      backgroundColor: [
+        'rgba(99,179,237,0.5)',
+        'rgba(159,122,234,0.5)',
+        'rgba(99,179,237,0.8)',
+        'rgba(72,187,120,0.5)',
+        'rgba(99,179,237,1)',
+      ],
+      borderColor: [
+        'rgba(99,179,237,0.8)',
+        'rgba(159,122,234,0.8)',
+        'rgba(99,179,237,1)',
+        'rgba(72,187,120,0.8)',
+        'rgba(99,179,237,1)',
+      ],
+      borderWidth: 1, borderRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.parsed.y.toFixed(2) + '%' } } },
+    scales: {
+      y: { ticks: { callback: v => v + '%' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// FCFF + Revenue chart
+new Chart(document.getElementById('fcffChart'), {
+  type: 'bar',
+  data: {
+    labels: ['FY2025', 'FY2026', 'FY2027', 'FY2028', 'FY2029'],
+    datasets: [
+      {
+        label: 'Revenue ($B)',
+        data: [58.29, 61.85, 64.94, 67.41, 69.43],
+        backgroundColor: 'rgba(159,122,234,0.25)',
+        borderColor: 'rgba(159,122,234,0.7)',
+        borderWidth: 1, borderRadius: 6,
+        yAxisID: 'y1',
+      },
+      {
+        label: 'FCFF ($B)',
+        type: 'line',
+        data: [9.74, 10.33, 10.85, 11.26, 11.60],
+        borderColor: 'rgba(99,179,237,1)',
+        backgroundColor: 'rgba(99,179,237,0.1)',
+        fill: true, tension: 0.4,
+        pointBackgroundColor: 'rgba(99,179,237,1)',
+        pointRadius: 5, borderWidth: 2,
+        yAxisID: 'y2',
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top', labels: { usePointStyle: true, padding: 20 } }, tooltip: { mode: 'index' } },
+    scales: {
+      y1: { position: 'left', ticks: { callback: v => '$' + v + 'B' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+      y2: { position: 'right', ticks: { callback: v => '$' + v + 'B' }, grid: { display: false } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// EV composition doughnut
+new Chart(document.getElementById('evChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['PV of FCFFs', 'PV of Terminal Value'],
+    datasets: [{
+      data: [41.68, 144.31],
+      backgroundColor: ['rgba(159,122,234,0.7)', 'rgba(99,179,237,0.7)'],
+      borderColor: ['rgba(159,122,234,1)', 'rgba(99,179,237,1)'],
+      borderWidth: 2,
+      hoverOffset: 8,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false, cutout: '68%',
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true } },
+      tooltip: { callbacks: { label: ctx => ctx.label + ': $' + ctx.parsed.toFixed(1) + 'B (' + ((ctx.parsed / (41.68 + 144.31)) * 100).toFixed(1) + '%)' } }
+    }
+  }
+});
+
+// Relative implied prices bar
+new Chart(document.getElementById('relChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Fwd P/E (14.0×)', 'EV/Revenue (4.9×)', 'EV/EBITDA (12.5×)', 'DCF Implied', 'Current Price'],
+    datasets: [{
+      label: 'Implied Price ($)',
+      data: [112.60, 173.97, 146.11, 102.94, 180.27],
+      backgroundColor: [
+        'rgba(246,173,85,0.4)',
+        'rgba(72,187,120,0.4)',
+        'rgba(99,179,237,0.4)',
+        'rgba(252,129,129,0.4)',
+        'rgba(255,255,255,0.15)',
+      ],
+      borderColor: [
+        'rgba(246,173,85,0.9)',
+        'rgba(72,187,120,0.9)',
+        'rgba(99,179,237,0.9)',
+        'rgba(252,129,129,0.9)',
+        'rgba(255,255,255,0.5)',
+      ],
+      borderWidth: 2, borderRadius: 8,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      annotation: {},
+      tooltip: { callbacks: { label: ctx => '$' + ctx.parsed.y.toFixed(2) } }
+    },
+    scales: {
+      y: { ticks: { callback: v => '$' + v }, grid: { color: 'rgba(255,255,255,0.05)' }, min: 0 },
+      x: { grid: { display: false } }
+    }
+  }
+});
+</script>
+
+</body>
+</html>
